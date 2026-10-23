@@ -2,8 +2,8 @@
 
 A tiny office game: colleagues name their crush(es), and the most crushed-on person wins a prize.
 
-- Colleagues only ever see vote **totals**, and the leaderboard stays hidden until the admin reveals it.
-- The admin panel shows the full results and who voted for whom. The voting page says so up front.
+- **Fully anonymous:** only per-name totals are stored. There is no record of who picked whom, not even for the admin.
+- The leaderboard stays hidden until the admin reveals it.
 - One vote per person, up to 3 crushes, and you can't vote for yourself.
 - Zero dependencies: plain Node.js (18+).
 

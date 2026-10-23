@@ -35,13 +35,7 @@
   <section class="card" id="results" hidden>
     <h2>🏆 Full results (admin only)</h2>
     <div id="board"></div>
-  </section>
-
-  <section class="card" id="ballots-card" hidden>
-    <h2>🕵️ Who voted for whom (admin only)</h2>
-    <div id="ballots"></div>
-  </section>
-</main>
+  </section></main>
 <script>
 const $ = (s) => document.querySelector(s);
 let key = sessionStorage.getItem('crush-admin') || '';
@@ -67,15 +61,7 @@ async function call(action) {
       <span class="name">${esc(e.name)}</span>
       <span class="bar"><i style="width:${(e.count / top) * 100}%"></i></span>
       <span class="count">${e.count} 💘</span>
-    </div>`).join('') : '<p class="empty">No votes yet.</p>';
-  $('#ballots-card').hidden = false;
-  $('#ballots').innerHTML = data.ballots.length ? data.ballots.map((b) => `
-    <div class="ballot">
-      <span class="name">${esc(b.voter)}</span>
-      <span>💘 ${b.crushes.map(esc).join(', ')}</span>
-      <span class="hint">${new Date(b.at).toLocaleString()}</span>
-    </div>`).join('') : '<p class="empty">No votes yet.</p>';
-}
+    </div>`).join('') : '<p class="empty">No votes yet.</p>';}
 
 $('#enter').onclick = () => { key = $('#key').value.trim(); call('status'); };
 $('#key').onkeydown = (e) => { if (e.key === 'Enter') $('#enter').click(); };

@@ -1,9 +1,9 @@
 // Secret Crush — anonymous office crush counter.
 // Zero dependencies: run with `node server.js` (Node 18+).
 //
-// Privacy model: colleagues only ever see per-name totals. Each ballot
-// (voter -> crushes) is also recorded and visible to the admin only — the
-// voting page tells voters this up front.
+// Anonymity model: votes only ever increment a per-name counter. The voter's
+// identity is stored separately as a salted hash (just to stop double voting),
+// with nothing linking it to who they picked.
 
 const http = require('node:http');
 const fs = require('node:fs');
@@ -27,18 +27,21 @@ const SECRET = fs.readFileSync(SECRET_FILE, 'utf8').trim();
 const ADMIN_KEY = process.env.ADMIN_KEY || crypto.createHash('sha256').update('admin:' + SECRET).digest('hex').slice(0, 12);
 
 function emptyDb() {
-  return { open: true, revealed: false, counts: {}, voters: [], ballots: [] };
+  return { open: true, revealed: false, counts: {}, voters: [] };
 }
 
 function loadDb() {
   try {
-    return { ...emptyDb(), ...JSON.parse(fs.readFileSync(DB_FILE, 'utf8')) };
+    const { open, revealed, counts, voters } = { ...emptyDb(), ...JSON.parse(fs.readFileSync(DB_FILE, 'utf8')) };
+    return { open, revealed, counts, voters };
   } catch {
     return emptyDb();
   }
 }
 
+// Saving straight away also purges any per-voter ballots left by older versions.
 let db = loadDb();
+if (fs.existsSync(DB_FILE)) saveDb();
 
 function saveDb() {
   const tmp = DB_FILE + '.tmp';
@@ -131,7 +134,6 @@ function handleVote(body) {
     db.counts[k] = { name, count: (db.counts[k]?.count || 0) + 1 };
   }
   db.voters.push(hash);
-  db.ballots.push({ voter: me, crushes: [...chosen.values()], at: new Date().toISOString() });
   saveDb();
   return [200, { ok: true }];
 }
@@ -147,7 +149,7 @@ function handleAdmin(action) {
     default: return [400, { error: 'Unknown action' }];
   }
   if (action !== 'status') saveDb();
-  return [200, { open: db.open, revealed: db.revealed, voterCount: db.voters.length, leaderboard: leaderboard(), ballots: db.ballots }];
+  return [200, { open: db.open, revealed: db.revealed, voterCount: db.voters.length, leaderboard: leaderboard() }];
 }
 
 const MIME = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript', '.svg': 'image/svg+xml' };

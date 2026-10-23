@@ -91,9 +91,6 @@ button.secondary { background: transparent; color: var(--pink); border: 1px soli
 .bar { height: 8px; background: var(--pink-soft); border-radius: 4px; overflow: hidden; }
 .bar i { display: block; height: 100%; background: var(--pink); }
 .count { font-variant-numeric: tabular-nums; white-space: nowrap; }
-.ballot { display: grid; gap: 2px; padding: 10px 6px; border-bottom: 1px solid var(--border); }
-.ballot:last-child { border-bottom: 0; }
-.ballot .name { font-weight: 700; }
 footer { text-align: center; color: var(--muted); font-size: 0.85rem; }
 .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .actions button { margin-top: 0; }

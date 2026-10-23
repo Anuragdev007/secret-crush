@@ -11,13 +11,13 @@
   <header>
     <div class="logo">💘</div>
     <h1>Secret Crush</h1>
-    <p class="sub">Name your office crush. Your colleagues will never know it was you.<br>
+    <p class="sub">Name your office crush. Nobody will ever know it was you.<br>
       The most-crushed-on colleague wins a prize 🎁</p>
   </header>
 
   <section class="card" id="vote-card">
     <form id="vote-form" autocomplete="off">
-      <label for="voter">Your name <span class="hint">(colleagues never see this — only the organizer does)</span></label>
+      <label for="voter">Your name <span class="hint">(only used to stop double voting — never linked to your picks)</span></label>
       <input id="voter" list="names" placeholder="e.g. Priya Sharma" required>
 
       <label>Your crush(es) <span class="hint" id="max-hint"></span></label>
@@ -34,7 +34,7 @@
     <div id="board"></div>
   </section>
 
-  <footer>🔐 Colleagues only ever see vote totals. The organizer can see who picked whom and keeps it confidential.</footer>
+  <footer>🔐 Votes are stored only as anonymous tallies — there is no record of who picked whom, not even for the organizer.</footer>
 </main>
 
 <datalist id="names"></datalist>
