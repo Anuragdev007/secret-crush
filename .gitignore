@@ -1,0 +1,5 @@
+# Votes, ballots and the server secret — never commit these
+data/
+# Real colleague names
+roster.txt
+node_modules/

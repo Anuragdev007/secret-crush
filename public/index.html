@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Secret Crush</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<main>
+  <header>
+    <div class="logo">💘</div>
+    <h1>Secret Crush</h1>
+    <p class="sub">Name your office crush. Your colleagues will never know it was you.<br>
+      The most-crushed-on colleague wins a prize 🎁</p>
+  </header>
+
+  <section class="card" id="vote-card">
+    <form id="vote-form" autocomplete="off">
+      <label for="voter">Your name <span class="hint">(colleagues never see this — only the organizer does)</span></label>
+      <input id="voter" list="names" placeholder="e.g. Priya Sharma" required>
+
+      <label>Your crush(es) <span class="hint" id="max-hint"></span></label>
+      <div id="crush-inputs"></div>
+
+      <button type="submit" id="submit">Send secretly 💌</button>
+      <p class="msg" id="msg" role="status"></p>
+    </form>
+    <div id="closed" class="closed" hidden>🔒 Voting is closed. Stay tuned for the reveal!</div>
+  </section>
+
+  <section class="card" id="results">
+    <h2>🏆 Leaderboard</h2>
+    <div id="board"></div>
+  </section>
+
+  <footer>🔐 Colleagues only ever see vote totals. The organizer can see who picked whom and keeps it confidential.</footer>
+</main>
+
+<datalist id="names"></datalist>
+
+<script>
+const $ = (s) => document.querySelector(s);
+let state;
+
+async function load() {
+  state = await fetch('/api/state').then((r) => r.json());
+
+  $('#names').innerHTML = (state.roster || []).map((n) => `<option value="${esc(n)}">`).join('');
+  $('#max-hint').textContent = `(up to ${state.maxCrushes})`;
+
+  const box = $('#crush-inputs');
+  if (!box.children.length) {
+    for (let i = 0; i < state.maxCrushes; i++) {
+      const inp = document.createElement('input');
+      inp.className = 'crush';
+      inp.setAttribute('list', 'names');
+      inp.placeholder = i === 0 ? 'Crush #1' : `Crush #${i + 1} (optional)`;
+      if (i === 0) inp.required = true;
+      box.appendChild(inp);
+    }
+  }
+
+  const voted = localStorage.getItem('crush-voted') === '1';
+  $('#vote-form').hidden = !state.open || voted;
+  $('#closed').hidden = state.open && !voted;
+  if (voted && state.open) $('#closed').textContent = '✅ Your secret is in! Come back for the reveal.';
+
+  renderBoard();
+}
+
+function renderBoard() {
+  const b = $('#board');
+  if (!state.revealed) {
+    b.innerHTML = `<div class="hidden-board"><div class="big">🤫</div>
+      Results are hidden until the big reveal.<br>
+      <strong>${state.voterCount}</strong> colleague${state.voterCount === 1 ? ' has' : 's have'} voted so far.</div>`;
+    return;
+  }
+  if (!state.leaderboard.length) { b.innerHTML = '<p class="empty">No votes yet.</p>'; return; }
+  const medal = { 1: '🥇', 2: '🥈', 3: '🥉' };
+  const top = state.leaderboard[0].count;
+  b.innerHTML = state.leaderboard.map((e) => `
+    <div class="row ${e.rank === 1 ? 'winner' : ''}">
+      <span class="rank">${medal[e.rank] || '#' + e.rank}</span>
+      <span class="name">${esc(e.name)}</span>
+      <span class="bar"><i style="width:${(e.count / top) * 100}%"></i></span>
+      <span class="count">${e.count} 💘</span>
+    </div>`).join('');
+}
+
+$('#vote-form').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const msg = $('#msg');
+  msg.className = 'msg';
+  msg.textContent = 'Sending…';
+  const res = await fetch('/api/vote', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      voter: $('#voter').value,
+      crushes: [...document.querySelectorAll('.crush')].map((i) => i.value),
+    }),
+  });
+  const data = await res.json();
+  if (res.ok || res.status === 409) {
+    localStorage.setItem('crush-voted', '1');
+    $('#vote-form').reset();
+  }
+  if (res.ok) {
+    msg.className = 'msg ok';
+    msg.textContent = '💌 Sent! Your secret is safe.';
+    setTimeout(load, 1500);
+  } else {
+    msg.className = 'msg err';
+    msg.textContent = data.error || 'Something went wrong.';
+  }
+});
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+load();
+setInterval(() => fetch('/api/state').then((r) => r.json()).then((s) => { state = s; renderBoard(); }), 10000);
+</script>
+</body>
+</html>
